@@ -49,7 +49,7 @@ Example usage:
 ./cluster_PETs -i 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe -o 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters -p 2 -c 15 -e 50
 ```
 
-## Determining cutoff
+## Determining parameters
 
 The clustering parameters used in the original paper were the following:
 * Extension: `500bp`
