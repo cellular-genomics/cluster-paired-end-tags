@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This project implements a paired end tags (PETs) clustering algorithm described in [CTCF-Mediated Human 3D Genome Architecture Reveals Chromatin Topology for Transcription](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4734140/) paper by _Tang et al 2015_. The algorithm is described in [Supplemental Information](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4734140/bin/NIHMS738408-supplement-01.pdf) as follows:
+This project implements a paired end tags (PETs) clustering algorithm described in [CTCF-Mediated Human 3D Genome Architecture Reveals Chromatin Topology for Transcription](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4734140/) paper by _Tang et al. (2015)_. The algorithm is described in [Supplemental Information](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4734140/bin/NIHMS738408-supplement-01.pdf) as follows:
 
 >Each PET was categorized as either a self-ligation PET (two ends of the same DNA fragment) or inter-ligation PET (two ends from two different DNA fragments in the same chromatin complex) by evaluating the genomic span between the two ends of a PET. PETs with a genomic span less than 8 kb are classified as self-ligation PETs and are used as a proxy for ChIP fragments since they are derived in a manner analogous to ChIP-Seq mapping for protein binding sites. PETs with a genomic span greater than 8 kb are classified as inter-ligation PETs and represent the long-range interactions of interest. To accurately represent the frequency of interaction between two loci and to define the interacting regions, both ends of inter-ligation PETs were extended by 500 bp along the reference genome, and PETs overlapping at both ends (with extension) were clustered together as one PET cluster.
 
