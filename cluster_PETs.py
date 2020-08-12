@@ -51,11 +51,14 @@ def cluster_PETs(args):
     pets.start2 = (pets.start2 - args.extension).clip(0)
     pets.end2 = pets.end2 + args.extension
 
+    # add centers
+    pets["center1"] = (pets.start1 + (pets.end1 - pets.start1) // 2) * pets.cnt
+    pets["center2"] = (pets.start2 + (pets.end2 - pets.start2) // 2) * pets.cnt
     logging.info("Done.")
 
-    chrom, start1, end1, start2, end2, cnt = \
-        pets.chrom1.to_numpy(dtype=str, copy=True), pets.start1.to_numpy(copy=True), pets.end1.to_numpy(copy=True),\
-        pets.start2.to_numpy(copy=True), pets.end2.to_numpy(copy=True), pets.cnt.to_numpy(copy=True)
+    chrom, start1, center1, end1, start2, center2, end2, cnt = \
+        pets.chrom1.to_numpy(dtype=str, copy=True), pets.start1.to_numpy(copy=True), pets.center1.to_numpy(copy=True), pets.end1.to_numpy(copy=True),\
+        pets.start2.to_numpy(copy=True), pets.center2.to_numpy(copy=True), pets.end2.to_numpy(copy=True), pets.cnt.to_numpy(copy=True)
 
     chrom_idxs = None
     step = 0
@@ -101,7 +104,7 @@ def cluster_PETs(args):
         logging.info(f"Clustering (step: #{step+1}, PETs: {len(pets):,}) ...")
 
         @numba.jit(nopython=True, parallel=True)
-        def cluster(chrom_idxs, order, start1, end1, start2, end2, cnt):
+        def cluster(chrom_idxs, order, start1, end1, start2, end2, center1, center2, cnt):
             changes = np.zeros(shape=(len(chrom_idxs)-1,), dtype=np.uint64)
 
             for idx in numba.prange(len(chrom_idxs)-1):
@@ -124,11 +127,13 @@ def cluster_PETs(args):
                             start2[i] = min(start2[i], start2[j])
                             end2[i] = max(end2[i], end2[j])
                             cnt[i] += cnt[j]
+                            center1[i] += center1[j]
+                            center2[i] += center2[j]
                             cnt[j] = 0
                             changes[idx] += 1
                         _j += 1
             return changes
-        changes = cluster(chrom_idxs, order, start1, end1, start2, end2, cnt)
+        changes = cluster(chrom_idxs, order, start1, end1, start2, end2, center1, center2, cnt)
         sum_changes = int(sum(changes))
         logging.info(f"Done. Changes: {sum_changes:,}")
         if sum_changes == 0:
@@ -139,8 +144,11 @@ def cluster_PETs(args):
     logging.info(f"Saving to {args.clusters_filename} (cluster cufoff: {args.cluster_cutoff})... ")
     pets = pd.DataFrame(data={"chrom1": chrom[order], "start1": start1[order], "end1": end1[order],
                               "chrom2": chrom[order], "start2": start2[order], "end2": end2[order],
+                              "center1": center1[order], "center2": center2[order],
                               "cnt": cnt[order]})
     pets = pets[pets.cnt >= args.cluster_cutoff]
+    pets.center1 = pets.center1 // pets.cnt
+    pets.center2 = pets.center2 // pets.cnt
     pets.to_csv(args.clusters_filename, sep="\t", index=False, header=False)
     logging.info(f"Done. Saved {len(pets)} clusters.")
 
