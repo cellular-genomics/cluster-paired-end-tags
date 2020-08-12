@@ -21,11 +21,12 @@ cd cluster-paired-end-tags
 Install required Python packages:
 ```
 pip install -r requirements.txt
+python setup.py install
 ```
 
 ## Usage
 
-The `cluster_PETs.py` program accepts the following command line arguments:
+The `cluster_PETs` program accepts the following command line arguments:
 
 `--pets_filename` - the .bedpe input file with all the PETs. Tab delimited. No header.
 
