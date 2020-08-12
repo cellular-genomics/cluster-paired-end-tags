@@ -10,7 +10,7 @@ This project implements a paired end tags (PETs) clustering algorithm described 
 
 >We observed that a lot of anchors of distinct PET clusters were located within the same protein factor binding peak. It is clear that these binding peaks reflect the real chromatin interaction loci in the nucleus. In order to streamline the PET clusters data structure, we collapsed the individual anchors of all PET clusters with 500 bp extensions to generate merged anchors. We then used the merged anchors to further cluster raw PET clusters. See Figure S2B for schematic illustration. Throughout the text, the merged PET clusters are referred to as interactions or connections. Un-clustered individual inter-ligation PETs and PETs in the clusters below the PET cutoff are referred as singletons.
 
-## Installation and compilation
+## Installation and Usage
 
 Download the source code from the GitHub:
 ```
@@ -18,35 +18,30 @@ git clone git@github.com:cellular-genomics/cluster-paired-end-tags.git
 cd cluster-paired-end-tags
 ```
 
-Install [Boost](https://www.boost.org/) framework needed by the C++ script:
+Install required Python packages:
 ```
-conda install boost
-```
-
-Compile the script. Replace `BOOST_LIB_FOLDER` with the location of your boost libraries (e.g. `~/opt/miniconda3/envs/bio/lib/)`)
-```
-/usr/bin/clang++ -std=c++17 -stdlib=libc++ cluster_PETs.cpp -o cluster_PETs -g <BOOST_LIB_FOLDER>/libboost_iostreams.a <BOOST_LIB_FOLDER>/libboost_program_options.a 
+pip install -r requirements.txt
 ```
 
 ## Usage
 
-The `cluster_PETs` program accepts the following command line arguments:
+The `cluster_PETs.py` program accepts the following command line arguments:
 
-`-i`, `--input` - the .bedpe input file with all the PETs. Tab delimited. No header.
+`--pets_filename` - the .bedpe input file with all the PETs. Tab delimited. No header.
 
-`-o`, `--output` - the .bedpe output file where the PET clusters will be saved. Tab delimited. No header.
+`--clusters_filename` - the .bedpe output file where the PET clusters will be saved. Tab delimited. No header.
 
-`-e`, `--extension` - the number of base pairs to add to the start and end regions of each PET. Default extension is 500bp.
+`--extension` - the number of base pairs to add to the start and end regions of each PET. Default extension is 500bp.
 
-`-s`, `--self_ligation` - the genomic span width to consider PET as self-ligation. Default is 8000bp. The self-ligating PETs are not considered during clustering.
+`--self_ligation` - the genomic span width to consider PET as self-ligation. Default is 8000bp. The self-ligating PETs are not considered during clustering.
 
-`-p`, `--pet_cutoff` - the PET count cutoff. Default is 2. PETs with count below the PET cutoff are not considered during clustering.
+`--pet_cutoff` - the PET count cutoff. Default is 2. PETs with count below the PET cutoff are not considered during clustering.
 
-`-c`, `--cluster_cutoff` - the PET cluster cutoff. Default is 4. PET clusters with count below the cluster cutoff are not reported in the output results.
+`--cluster_cutoff` - the PET cluster cutoff. Default is 4. PET clusters with count below the cluster cutoff are not reported in the output results.
 
 Example usage:
 ```
-./cluster_PETs -i 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe -o 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters -p 2 -c 15 -e 50
+python cluster_PETs.py --pets_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe --clusters_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters -pet_cutoff 2 -cluster_cutoff 15 -extension 50
 ```
 
 ## Determining parameters
@@ -78,4 +73,23 @@ clodius aggregate bedpe --assembly hg38 --output-file 4DNFI2BAXOSW_GM12878_CTCF_
 ## Further work
 
 * determine the best parameters for different experiments
-* include PETs from various experiment replicates at the same time
+
+## Legacy C++ version. Installation and compilation
+
+The original version of the program was written in C++ as I couldn't get the desired performance in Python. After discovered `numba` framework I switched to Python and the C++ code is no longer maintained.
+
+Download the source code from the GitHub:
+```
+git clone git@github.com:cellular-genomics/cluster-paired-end-tags.git
+cd cluster-paired-end-tags
+```
+
+Install [Boost](https://www.boost.org/) framework needed by the C++ script:
+```
+conda install boost
+```
+
+Compile the script. Replace `BOOST_LIB_FOLDER` with the location of your boost libraries (e.g. `~/opt/miniconda3/envs/bio/lib/)`)
+```
+/usr/bin/clang++ -std=c++17 -stdlib=libc++ cluster_PETs.cpp -o cluster_PETs -g <BOOST_LIB_FOLDER>/libboost_iostreams.a <BOOST_LIB_FOLDER>/libboost_program_options.a 
+```
