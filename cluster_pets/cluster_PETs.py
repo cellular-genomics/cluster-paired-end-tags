@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import numba
 import functools
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%H:%M:%S')
 
 
 def add_build_args(parser):
@@ -61,22 +61,10 @@ def cluster_PETs(args):
 
     chrom_idxs = None
     step = 0
+    order = np.arange(len(chrom))
     while True:
         # sorting
         logging.info(f"Sorting (step: #{step+1}, PETs: {len(pets):,}) ...")
-
-        @numba.jit(nopython=True)
-        def calc_chrom_idxs(chrom, order):
-            chrom_idxs = numba.typed.List()
-            old_chrom = chrom[0]
-            for _i in range(len(chrom)):
-                i = order[_i]
-                if _i == 0 or chrom[i] != old_chrom:
-                    chrom_idxs.append(_i)
-                    old_chrom = chrom[i]
-            chrom_idxs.append(len(chrom))
-            return chrom_idxs
-
         @numba.jit(nopython=True)
         def cmp(i, j):
             if chrom[i] != chrom[j]:
@@ -91,10 +79,22 @@ def cluster_PETs(args):
                 return end2[i] - end2[j]
             return 0
 
-        order = list(range(len(chrom)))
+        order = list(order)
         order.sort(key=functools.cmp_to_key(cmp))
         order = np.array(order)
         logging.info("Done.")
+
+        @numba.jit(nopython=True)
+        def calc_chrom_idxs(chrom, order):
+            chrom_idxs = numba.typed.List()
+            old_chrom = chrom[0]
+            for _i in range(len(chrom)):
+                i = order[_i]
+                if _i == 0 or chrom[i] != old_chrom:
+                    chrom_idxs.append(_i)
+                    old_chrom = chrom[i]
+            chrom_idxs.append(len(chrom))
+            return chrom_idxs
 
         if not chrom_idxs:
             chrom_idxs = calc_chrom_idxs(chrom, order)
