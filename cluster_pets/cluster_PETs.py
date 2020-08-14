@@ -8,9 +8,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefm
 
 
 def add_build_args(parser):
-    parser.add_argument("--pets_filename", type=str,
-                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe",
-                        help=".bedpe file containing raw PETs (no header)")
+    parser.add_argument("--pets_filename", type=str, action='append',
+                        default=["~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe"],
+                        help=".bedpe files containing raw PETs (no header)")
     parser.add_argument("--clusters_filename", type=str,
                         default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.1.9.25.py3.clusters",
                         help=".bedpe output file with clustered PETs (no header)")
@@ -27,7 +27,7 @@ def cluster_PETs(args):
     # reading the file
     logging.info(f"Reading PETs from {args.pets_filename} ...")
     columns = ["chrom1", "start1", "end1", "chrom2", "start2", "end2", "cnt"]
-    pets = pd.read_csv(args.pets_filename, sep="\t", header=None, names=columns, low_memory=False)
+    pets = pd.concat([pd.read_csv(f, sep="\t", header=None, names=columns, low_memory=False) for f in args.pets_filename])
     logging.info(f"Read {len(pets):,} PETs.")
 
     # pre-proccess

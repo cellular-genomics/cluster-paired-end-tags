@@ -28,7 +28,7 @@ python setup.py install
 
 The `cluster_PETs` program accepts the following command line arguments:
 
-`--pets_filename` - the .bedpe input file with all the PETs. Tab delimited. No header.
+`--pets_filename` - the .bedpe input files with all the PETs. Tab delimited. No header. Use multiple times to concat PETs from different files.
 
 `--clusters_filename` - the .bedpe output file where the PET clusters will be saved. Tab delimited. No header.
 
