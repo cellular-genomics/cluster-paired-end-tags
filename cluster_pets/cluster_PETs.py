@@ -10,10 +10,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefm
 
 def add_build_args(parser):
     parser.add_argument("--pets_filename", type=str, action='append',
-                        default=["~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe"],
+                        default=["~/BioData/4DNUCLEOME/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe"],
                         help=".bedpe files containing raw PETs (no header)")
     parser.add_argument("--clusters_filename", type=str,
-                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW.bedpe.1.9.25._2clusters",
+                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW.bedpe.1.9.25.clusters",
                         help=".bedpe output file with clustered PETs (no header)")
     parser.add_argument("--self_ligation", type=int, default=8000, help="Self-ligation genomic span (default: 8000)")
     parser.add_argument("--extension", type=int, default=25,
@@ -22,13 +22,15 @@ def add_build_args(parser):
                         help="Minimum number of PET counts to take PET into consideration (default: 1)")
     parser.add_argument("--cluster_cutoff", type=int, default=9,
                         help="Minimum number of total counts to consider as a cluster (default: 9)")
+    parser.add_argument("--nrows", type=int,
+                        help="If provided limits the number of rows read from the PET file to nrows")
 
 
 def cluster_PETs(args):
     # reading the file
     logging.info(f"Reading PETs from {args.pets_filename} ...")
     columns = ["chrom1", "start1", "end1", "chrom2", "start2", "end2", "cnt"]
-    pets = pd.concat([pd.read_csv(f, sep="\t", header=None, names=columns, low_memory=False, index_col=False) for f in args.pets_filename])
+    pets = pd.concat([pd.read_csv(f, sep="\t", header=None, names=columns, low_memory=False, nrows=args.nrows) for f in args.pets_filename])
     logging.info(f"Read {len(pets):,} PETs.")
 
     # pre-proccess
@@ -113,22 +115,18 @@ def cluster_PETs(args):
 
     # save to file
     logging.info(f"Saving to {args.clusters_filename} (cluster cufoff: {args.cluster_cutoff})... ")
-    pets = pd.DataFrame(data={"chrom1": itertools.chain.from_iterable([itertools.repeat(chrom, size) for chrom, size in chroms.items()]),
-                              "start1": itertools.chain.from_iterable([start1s[i][orders[i]] for i in range(len(chroms))]),
-                              "end1": itertools.chain.from_iterable([end1s[i][orders[i]] for i in range(len(chroms))]),
-                              "chrom2": itertools.chain.from_iterable([itertools.repeat(chrom, size) for chrom, size in chroms.items()]),
-                              "start2": itertools.chain.from_iterable([start2s[i][orders[i]] for i in range(len(chroms))]),
-                              "end2": itertools.chain.from_iterable([end2s[i][orders[i]] for i in range(len(chroms))]),
-                              "cnt": itertools.chain.from_iterable([cnts[i][orders[i]] for i in range(len(chroms))])
-                              })
-    print(pets.head(20))
-    print(pets.tail(20))
-#                            "start1": start1[order], "end1": end1[order],
-#                              "chrom2": chrom[order], "start2": start2[order], "end2": end2[order],
-#                              "cnt": cnt[order]})
+    for i, (chrom, size) in enumerate(chroms.items()):
+        pets = pd.concat([
+            pets, pd.DataFrame(data={"chrom1": itertools.repeat(chrom, size),
+                                     "start1": start1s[i][orders[i]],
+                                     "end1": end1s[i][orders[i]],
+                                     "chrom2": itertools.repeat(chrom, size),
+                                     "start2": start2s[i][orders[i]],
+                                     "end2": end2s[i][orders[i]],
+                                     "cnt": cnts[i][orders[i]]})])
     pets = pets[pets.cnt >= args.cluster_cutoff]
     pets.to_csv(args.clusters_filename, sep="\t", index=False, header=False)
-    logging.info(f"Done. Saved {len(pets)} clusters.")
+    logging.info(f"Done. Saved {len(pets):,} clusters.")
 
     return pets
 
