@@ -13,7 +13,7 @@ def add_build_args(parser):
                         default=["~/BioData/4DNUCLEOME/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe"],
                         help=".bedpe files containing raw PETs (no header)")
     parser.add_argument("--clusters_filename", type=str,
-                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW.bedpe.1.9.25.clusters",
+                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.1.9.25.clusters",
                         help=".bedpe output file with clustered PETs (no header)")
     parser.add_argument("--self_ligation", type=int, default=8000, help="Self-ligation genomic span (default: 8000)")
     parser.add_argument("--extension", type=int, default=25,
@@ -115,6 +115,7 @@ def cluster_PETs(args):
 
     # save to file
     logging.info(f"Saving to {args.clusters_filename} (cluster cufoff: {args.cluster_cutoff})... ")
+    pets = pd.DataFrame()
     for i, (chrom, size) in enumerate(chroms.items()):
         pets = pd.concat([
             pets, pd.DataFrame(data={"chrom1": itertools.repeat(chrom, size),
