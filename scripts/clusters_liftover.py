@@ -25,12 +25,13 @@ def conv_end2(x):
     return conv(x, "Chrom2", "End2")
 
 
-clusters = pd.read_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters.txt", names=["Chrom1", "Start1", "End1", "Chrom2", "Start2", "End2", "Score"], sep='\t')
+#clusters = pd.read_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters.txt", names=["Chrom1", "Start1", "End1", "Chrom2", "Start2", "End2", "Score"], sep='\t')
+clusters = pd.read_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters_coocupied_by_CTCF_cohesin.txt", names=["Chrom1", "Start1", "End1", "Chrom2", "Start2", "End2", "Upstream", "Downstream", "Score"], sep='\t')
 print(clusters.head())
-clusters[["Chrom1_hg38","Start1_hg38"]] = clusters.parallel_apply(conv_start1, axis=1, result_type="expand")
-clusters[["Chrom1_hg38","End1_hg38"]] = clusters.parallel_apply(conv_end1, axis=1, result_type="expand")
-clusters[["Chrom2_hg38","Start2_hg38"]] = clusters.parallel_apply(conv_start2, axis=1, result_type="expand")
-clusters[["Chrom2_hg38","End2_hg38"]] = clusters.parallel_apply(conv_end2, axis=1, result_type="expand")
+clusters[["Chrom1_hg38","Start1_hg38"]] = clusters.apply(conv_start1, axis=1, result_type="expand")
+clusters[["Chrom1_hg38","End1_hg38"]] = clusters.apply(conv_end1, axis=1, result_type="expand")
+clusters[["Chrom2_hg38","Start2_hg38"]] = clusters.apply(conv_start2, axis=1, result_type="expand")
+clusters[["Chrom2_hg38","End2_hg38"]] = clusters.apply(conv_end2, axis=1, result_type="expand")
 
 print(clusters.head())
 
@@ -48,4 +49,5 @@ clusters = clusters[clusters.Start1_hg38<=clusters.End1_hg38]
 clusters = clusters[clusters.Start2_hg38<=clusters.End2_hg38]
 print(len(clusters))
 
-clusters.to_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters_hg38.txt", sep='\t', index=False, header=False)
+#clusters.to_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters_hg38.txt", sep='\t', index=False, header=False)
+clusters.to_csv("~/BioData/chromatin_loops/GSM1872886_GM12878_CTCF_PET_clusters_coocupied_by_CTCF_cohesin_hg38.txt", sep='\t', index=False, header=False)
