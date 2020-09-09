@@ -32,6 +32,8 @@ The `cluster_PETs` program accepts the following command line arguments:
 
 `--clusters_filename` - the .bedpe output file where the PET clusters will be saved. Tab delimited. No header.
 
+`--peaks_filename` - the .bed file containing the list of peaks. If provided all the PETs which does not intersect with the peaks are removed before clustering. Additionally, each output cluster includes information about the strongest (higher score) peak intersecting its begin and end. The information is provided as two extra columns `center1` and `center2` which correspond to the algebraic center of the intersecting peaks.
+
 `--extension` - the number of base pairs to add to the start and end regions of each PET. Default extension is 500bp.
 
 `--self_ligation` - the genomic span width to consider PET as self-ligation. Default is 8000bp. The self-ligating PETs are not considered during clustering.
@@ -42,7 +44,7 @@ The `cluster_PETs` program accepts the following command line arguments:
 
 Example usage:
 ```
-python cluster_PETs.py --pets_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe --clusters_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters -pet_cutoff 2 -cluster_cutoff 15 -extension 50
+python cluster_PETs.py --pets_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe --clusters_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters --pet_cutoff 2 --cluster_cutoff 15 --extension 50
 ```
 
 ## Determining parameters
@@ -69,6 +71,14 @@ Side note. In order to display `.bedpe` files in HiGlass you need to convert the
 
 ```
 clodius aggregate bedpe --assembly hg38 --output-file 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters.multires 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters
+```
+
+## Determining clusters based on PETs which intersect DNA-seq peaks
+
+You can use the script to cluster only those PETs which intersect some DNA-seq peaks. For example to filter out the ChIA-PET CTCF PETs which does not intersect with DNA-seq CTCF peaks use the following parameters:
+
+```
+python cluster_PETs.py --pets_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe --clusters_filename 4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.2.15.50.clusters --peaks_filename ENCFF536RGD.bed --pet_cutoff 2 --cluster_cutoff 6 --extension 25
 ```
 
 ## Further work

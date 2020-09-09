@@ -3,8 +3,9 @@ import logging
 import pandas as pd
 import numpy as np
 import numba
-import functools
 import itertools
+from pyranges import PyRanges
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%H:%M:%S')
 
 
@@ -13,15 +14,17 @@ def add_build_args(parser):
                         default=["~/BioData/4DNUCLEOME/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe"],
                         help=".bedpe files containing raw PETs (no header)")
     parser.add_argument("--clusters_filename", type=str,
-                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.1.9.25.clusters",
+                        default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.25.2.6.clusters",
                         help=".bedpe output file with clustered PETs (no header)")
+    parser.add_argument("--peaks_filename", type=str, default="~/BioData/ENCODE/ENCFF536RGD.bed",
+                        help="Peaks which must intersect with PETs to be considered during clustering (.bed file)")
     parser.add_argument("--self_ligation", type=int, default=8000, help="Self-ligation genomic span (default: 8000)")
     parser.add_argument("--extension", type=int, default=25,
                         help="No of base pairs to extend both ends of PETs (default: 25)")
     parser.add_argument("--pet_cutoff", type=int, default=1,
-                        help="Minimum number of PET counts to take PET into consideration (default: 1)")
+                        help="Minimum number of PET counts to take PET into consideration (default: 2)")
     parser.add_argument("--cluster_cutoff", type=int, default=9,
-                        help="Minimum number of total counts to consider as a cluster (default: 9)")
+                        help="Minimum number of total counts to consider as a cluster (default: 6)")
     parser.add_argument("--nrows", type=int,
                         help="If provided limits the number of rows read from the PET file to nrows")
 
@@ -56,7 +59,19 @@ def cluster_PETs(args):
     pets.start2 = (pets.start2 - args.extension).clip(0)
     pets.end2 = pets.end2 + args.extension
 
-    logging.info("Done.")
+    # remove not intersecting anchors
+    if args.peaks_filename:
+        peaks = pd.read_csv(args.peaks_filename, sep="\t", header=None, usecols=[0, 1, 2, 6],
+                            names=["Chromosome", "Start", "End", "Score"])
+        peaks = PyRanges(peaks)
+        pets["Chromosome"], pets["Start"], pets["End"] = pets.chrom1, pets.start1, pets.end1
+        pets = PyRanges(pets).intersect(peaks).df
+        pets["Chromosome"], pets["Start"], pets["End"] = pets.chrom2, pets.start2, pets.end2
+        pets = PyRanges(pets).intersect(peaks).df
+        peaks = peaks.df
+        peaks["Center"] = peaks["Start"] + (peaks["End"]-peaks["Start"]) // 2
+
+    logging.info(f"Done. {len(pets):,} PETs left.")
 
     chroms = pets.groupby(["chrom1"]).size().to_dict()
 
@@ -126,6 +141,17 @@ def cluster_PETs(args):
                                      "end2": end2s[i][orders[i]],
                                      "cnt": cnts[i][orders[i]]})])
     pets = pets[pets.cnt >= args.cluster_cutoff]
+    if peaks:
+        pets["Center1"] = pets.apply(lambda row: peaks.iloc[
+                            peaks[(peaks.Chromosome == row.chrom1) &
+                                  (((peaks.Start >= row.start1) & (peaks.Start < row.end1)) |
+                                  ((peaks.End >= row.start1) & (peaks.End < row.end1)))]
+                                 ["Score"].idxmax()]["Center"], axis=1)
+        pets["Center2"] = pets.apply(lambda row: peaks.iloc[
+                            peaks[(peaks.Chromosome == row.chrom1) &
+                                  (((peaks.Start >= row.start2) & (peaks.Start < row.end2)) |
+                                  ((peaks.End >= row.start2) & (peaks.End < row.end2)))]
+                                 ["Score"].idxmax()]["Center"], axis=1)
     pets.to_csv(args.clusters_filename, sep="\t", index=False, header=False)
     logging.info(f"Done. Saved {len(pets):,} clusters.")
 
