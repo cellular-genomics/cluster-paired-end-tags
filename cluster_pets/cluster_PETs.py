@@ -21,9 +21,9 @@ def add_build_args(parser):
     parser.add_argument("--self_ligation", type=int, default=8000, help="Self-ligation genomic span (default: 8000)")
     parser.add_argument("--extension", type=int, default=25,
                         help="No of base pairs to extend both ends of PETs (default: 25)")
-    parser.add_argument("--pet_cutoff", type=int, default=1,
+    parser.add_argument("--pet_cutoff", type=int, default=2,
                         help="Minimum number of PET counts to take PET into consideration (default: 2)")
-    parser.add_argument("--cluster_cutoff", type=int, default=9,
+    parser.add_argument("--cluster_cutoff", type=int, default=6,
                         help="Minimum number of total counts to consider as a cluster (default: 6)")
     parser.add_argument("--nrows", type=int,
                         help="If provided limits the number of rows read from the PET file to nrows")
