@@ -60,6 +60,7 @@ def cluster_PETs(args):
     pets.end2 = pets.end2 + args.extension
 
     # remove not intersecting anchors
+    peaks = None
     if args.peaks_filename:
         peaks = pd.read_csv(args.peaks_filename, sep="\t", header=None, usecols=[0, 1, 2, 6],
                             names=["Chromosome", "Start", "End", "Score"])
