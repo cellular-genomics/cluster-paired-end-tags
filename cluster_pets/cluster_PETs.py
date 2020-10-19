@@ -16,7 +16,7 @@ def add_build_args(parser):
     parser.add_argument("--clusters_filename", type=str,
                         default="~/BioData/chromatin_loops/4DNFI2BAXOSW_GM12878_CTCF_rep1_hiseq.bedpe.25.2.6.clusters",
                         help=".bedpe output file with clustered PETs (no header)")
-    parser.add_argument("--peaks_filename", type=str, default="~/BioData/ENCODE/ENCFF536RGD.bed",
+    parser.add_argument("--peaks_filename", type=str,
                         help="Peaks which must intersect with PETs to be considered during clustering (.bed file)")
     parser.add_argument("--self_ligation", type=int, default=8000, help="Self-ligation genomic span (default: 8000)")
     parser.add_argument("--extension", type=int, default=25,
