@@ -142,16 +142,14 @@ def cluster_PETs(args):
                                      "end2": end2s[i][orders[i]],
                                      "cnt": cnts[i][orders[i]]})])
     pets = pets[pets.cnt >= args.cluster_cutoff]
-    if peaks:
+    if peaks is not None:
         pets["Center1"] = pets.apply(lambda row: peaks.iloc[
                             peaks[(peaks.Chromosome == row.chrom1) &
-                                  (((peaks.Start >= row.start1) & (peaks.Start < row.end1)) |
-                                  ((peaks.End >= row.start1) & (peaks.End < row.end1)))]
+                                  (peaks.Start <= row.end1) & (row.start1 <= peaks.End)]
                                  ["Score"].idxmax()]["Center"], axis=1)
         pets["Center2"] = pets.apply(lambda row: peaks.iloc[
                             peaks[(peaks.Chromosome == row.chrom1) &
-                                  (((peaks.Start >= row.start2) & (peaks.Start < row.end2)) |
-                                  ((peaks.End >= row.start2) & (peaks.End < row.end2)))]
+                                  (peaks.Start <= row.end2) & (row.start2 <= peaks.End)]
                                  ["Score"].idxmax()]["Center"], axis=1)
     pets.to_csv(args.clusters_filename, sep="\t", index=False, header=False)
     logging.info(f"Done. Saved {len(pets):,} clusters.")
